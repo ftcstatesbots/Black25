@@ -1,5 +1,5 @@
 plugins {
-	id("dev.frozenmilk.teamcode") version "10.1.1-0.0.0"
+	id("dev.frozenmilk.teamcode") version "10.1.1-0.1.3"
 }
 
 ftc {

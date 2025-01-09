@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode
 
-import com.ThermalEquilibrium.homeostasis.Controllers.Feedback.AngleController
-import com.ThermalEquilibrium.homeostasis.Controllers.Feedback.PIDEx
-import com.ThermalEquilibrium.homeostasis.Parameters.PIDCoefficientsEx
+import com.acmerobotics.dashboard.config.Config
+import com.arcrobotics.ftclib.controller.PIDController
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
+import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
+import kotlin.math.cos
 
 //first subsystem, so be patient
 class ArmSubsystem : Subsystem {
@@ -20,6 +21,7 @@ class ArmSubsystem : Subsystem {
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
     @Inherited
+    @Config
     annotation class Attach
 
     private var motor: DcMotorEx by subsystemCell {
@@ -33,16 +35,25 @@ class ArmSubsystem : Subsystem {
     private var claw: Servo by subsystemCell{
         FeatureRegistrar.activeOpMode.hardwareMap.get(Servo::class.java, "claw")
     }
-    private var targetArmPos = 0.0
 
-    private var Kp = 0.0
-    private var Ki = 0.0
-    private var Kd = 0.0
-    private var iSumMax = 0.0
+    //PIDF Coefficents
+    public val p = 0.0
+    public val i = 0.0
+    public val d = 0.0
+    public val f = 0.0
+    public val ticksPerDegree = 0.0
+    public var targetArmPosition = 0.0
 
-    private var pidCoefficientsEx = PIDCoefficientsEx(Kp, Ki, Kd, iSumMax,0.0,0.0)
-    private var pidEx = PIDEx(pidCoefficientsEx)
-    private var angleController = AngleController(pidEx)
-    private var
 
+    private var pidController: PIDController = PIDController(p,i,d)
+
+    override fun preUserLoopHook(opMode: Wrapper) {
+        pidController.setPID(p,i,d)
+        var armPos = motor.currentPosition
+        var result = pidController.calculate(armPos.toDouble(), targetArmPosition)
+        var ff= cos(Math.toRadians(targetArmPosition / ticksPerDegree)) * f
+
+        opMode.opMode.telemetry.addData("pos", armPos)
+        opMode.opMode.telemetry.addData("target", targetArmPosition)
+    }
 }

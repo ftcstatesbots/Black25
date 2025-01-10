@@ -8,6 +8,7 @@ import dev.frozenmilk.mercurial.bindings.BoundGamepad
 
 @Mercurial.Attach
 @ArmSubsystem.Attach
+@DrivetrainSubsystem.Attach
 @TeleOp
 class BasicOPMode : OpMode() {
     override fun init() {
@@ -15,6 +16,13 @@ class BasicOPMode : OpMode() {
     }
 
     override fun loop() {
-        TODO("Not yet implemented")
+        telemetry.addLine("test")
+        telemetry.update()
+
+        DrivetrainSubsystem.setDrivePower(
+            gamepad1.left_stick_x.toDouble(),
+            gamepad1.left_stick_y.toDouble(),
+            gamepad1.right_stick_x.toDouble()
+        )
     }
 }

@@ -6,17 +6,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
+import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
 import kotlin.math.cos
 
 //first subsystem, so be patient
-class ArmSubsystem : Subsystem {
+object ArmSubsystem : Subsystem {
+    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(
+        DrivetrainSubsystem.Attach::class.java)
 
-    override var dependency: Dependency<*> = Dependency {
-        opMode, resolvedFeatures, yielding ->
-    }
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented

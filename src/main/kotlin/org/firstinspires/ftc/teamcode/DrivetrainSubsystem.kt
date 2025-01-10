@@ -3,28 +3,30 @@ package org.firstinspires.ftc.teamcode
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
+import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
+import dev.frozenmilk.dairy.core.util.OpModeLazyCell
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
 
-class DrivetrainSubsystem : Subsystem{
-    override var dependency : Dependency<*> = Dependency{opMode, resolvedFeatures, yielding, ->}
+object DrivetrainSubsystem : Subsystem{
+    override var dependency: Dependency<*> = Subsystem.DEFAULT_DEPENDENCY and SingleAnnotation(Attach::class.java)
     @Target(AnnotationTarget.CLASS)
     @Retention(AnnotationRetention.RUNTIME)
     @MustBeDocumented
     @Inherited
     annotation class Attach
 
-    private val leftFront by subsystemCell {
+    private val leftFront: DcMotorEx by OpModeLazyCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "lf")
     }
-    private val rightFront by subsystemCell {
+    private val rightFront: DcMotorEx by OpModeLazyCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "rf")
     }
-    private val rightBack by subsystemCell {
+    private val rightBack: DcMotorEx by OpModeLazyCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "rb")
     }
-    private val leftBack by subsystemCell {
+    private val leftBack: DcMotorEx by OpModeLazyCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "lb")
     }
 
@@ -51,10 +53,6 @@ class DrivetrainSubsystem : Subsystem{
     }
 
     override fun preUserLoopHook(opMode: Wrapper) {
-        setDrivePower(
-            opMode.opMode.gamepad1.left_stick_x.toDouble(),
-            -opMode.opMode.gamepad1.left_stick_y.toDouble(),
-            opMode.opMode.gamepad1.right_stick_x.toDouble()
-        )
+
     }
 }

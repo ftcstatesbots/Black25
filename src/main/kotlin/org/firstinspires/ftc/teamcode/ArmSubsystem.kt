@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
+import dev.frozenmilk.dairy.core.wrapper.OpModeWrapper
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
@@ -36,13 +37,16 @@ object ArmSubsystem : Subsystem {
         FeatureRegistrar.activeOpMode.hardwareMap.get(Servo::class.java, "claw")
     }
 
-    //PIDF Coefficents
-    public val p = 0.0
-    public val i = 0.0
-    public val d = 0.0
-    public val f = 0.0
-    public val ticksPerDegree = 0.0
-    public var targetArmPosition = 0.0
+    var motorPwr: Double = 0.0
+    var wristPos: Double = 0.0
+    var clawPos: Double = 0.0
+    //PIDF Coefficients
+    const val p = 0.0
+    const val i = 0.0
+    const val d = 0.0
+    const val f = 0.0
+    const val ticksPerDegree = 500.0/135.0
+    const val targetArmPosition = 0.0
 
 
     private var pidController: PIDController = PIDController(p,i,d)
@@ -53,7 +57,21 @@ object ArmSubsystem : Subsystem {
         var result = pidController.calculate(armPos.toDouble(), targetArmPosition)
         var ff= cos(Math.toRadians(targetArmPosition / ticksPerDegree)) * f
 
-        opMode.opMode.telemetry.addData("pos", armPos)
-        opMode.opMode.telemetry.addData("target", targetArmPosition)
+        opMode.opMode.telemetry
+            .addData("pos", armPos)
+            .addData("target pos", targetArmPosition)
+            .addData("arm power", motorPwr)
+            .addData("wrist pos", wristPos)
+            .addData("claw pos", clawPos)
+
+        motor.power=motorPwr
+        wrist.position=wristPos
+        claw.position=clawPos
+    }
+
+    fun setArmVals(a: Double, w: Double, c: Double){
+        motorPwr=a
+        wristPos=w
+        clawPos=c
     }
 }

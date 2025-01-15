@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import dev.frozenmilk.dairy.core.FeatureRegistrar
 import dev.frozenmilk.dairy.core.dependency.Dependency
 import dev.frozenmilk.dairy.core.dependency.annotation.SingleAnnotation
-import dev.frozenmilk.dairy.core.util.OpModeLazyCell
 import dev.frozenmilk.dairy.core.wrapper.Wrapper
 import dev.frozenmilk.mercurial.subsystems.Subsystem
 import java.lang.annotation.Inherited
@@ -17,16 +16,16 @@ object DrivetrainSubsystem : Subsystem{
     @Inherited
     annotation class Attach
 
-    private val leftFront: DcMotorEx by OpModeLazyCell {
+    private val leftFront: DcMotorEx by subsystemCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "lf")
     }
-    private val rightFront: DcMotorEx by OpModeLazyCell {
+    private val rightFront: DcMotorEx by subsystemCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "rf")
     }
-    private val rightBack: DcMotorEx by OpModeLazyCell {
+    private val rightBack: DcMotorEx by subsystemCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "rb")
     }
-    private val leftBack: DcMotorEx by OpModeLazyCell {
+    private val leftBack: DcMotorEx by subsystemCell {
         FeatureRegistrar.activeOpMode.hardwareMap.get(DcMotorEx::class.java, "lb")
     }
 
@@ -46,10 +45,10 @@ object DrivetrainSubsystem : Subsystem{
     }
 
     fun driveKine(x:Double, y:Double, r:Double): DoubleArray{
-        return doubleArrayOf(y+x-r, y+x+r, y-x+r, y-x-r)
+        return doubleArrayOf(y+x+r, y-x-r, y+x-r, y-x+r)
     }
     fun driveKine(x:Int, y:Int, r:Int): IntArray{
-        return intArrayOf(y+x-r, y+x+r, y-x+r, y-x-r)
+        return intArrayOf(y+x+r, y+x-r, y-x-r, y-x+r)
     }
 
     override fun preUserLoopHook(opMode: Wrapper) {

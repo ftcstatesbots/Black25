@@ -17,8 +17,6 @@ import dev.frozenmilk.mercurial.bindings.BoundGamepad
 class BasicOPMode : OpMode() {
     override fun init() {
         val boundGamepad = BoundGamepad(SDKGamepad(gamepad1))
-
-        telemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)
     }
 
     override fun loop() {
@@ -32,5 +30,13 @@ class BasicOPMode : OpMode() {
             gamepad1.right_trigger.toDouble(),
             gamepad1.left_trigger.toDouble()
         )
+
+        if(gamepad1.start) ArmSubsystem.resetLocation()
+
+        var dashboard = FtcDashboard.getInstance();
+        var dashboardTelemetry = dashboard.getTelemetry();
+
+        dashboardTelemetry.update();
+
     }
 }

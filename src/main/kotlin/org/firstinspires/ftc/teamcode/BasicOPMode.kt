@@ -8,6 +8,8 @@ import dev.frozenmilk.dairy.pasteurized.SDKGamepad
 import dev.frozenmilk.dairy.pasteurized.layering.LayeredGamepad
 import dev.frozenmilk.dairy.pasteurized.layering.MapLayeringSystem
 import dev.frozenmilk.mercurial.Mercurial
+import dev.frozenmilk.mercurial.bindings.BoundBooleanSupplier
+import dev.frozenmilk.mercurial.bindings.BoundDoubleSupplier
 import dev.frozenmilk.mercurial.bindings.BoundGamepad
 import dev.frozenmilk.mercurial.commands.Lambda
 
@@ -24,33 +26,34 @@ class BasicOPMode : OpMode() {
         DEFAULT
     }
 
-    val intakingGamepad = BoundGamepad(SDKGamepad(gamepad1))
-    val depositingGamepad = BoundGamepad(SDKGamepad(gamepad1))
-    val defaultGamepad = BoundGamepad(SDKGamepad(gamepad1))
-
-    val gamepadMap = mapOf(
-        Layers.INTAKING to intakingGamepad,
-        Layers.DEPOSITING to depositingGamepad,
-        Layers.DEFAULT to defaultGamepad
-    )
-
-    val enumLayeringSystem = MapLayeringSystem(Layers.DEFAULT, gamepadMap)
-    val layeredGamepad = LayeredGamepad(enumLayeringSystem)
-
-    val defaultLayerTransition  = Lambda("default layer transition")
-        .setInit{ enumLayeringSystem.layer = Layers.DEFAULT}
-
     override fun init() {
-        layeredGamepad.leftStickButton
+        val boundGamepad1 = BoundGamepad(SDKGamepad(gamepad1))
+        val intakingGamepad = BoundGamepad(SDKGamepad(gamepad1))
+        val depositingGamepad = BoundGamepad(SDKGamepad(gamepad1))
+        val defaultGamepad = BoundGamepad(SDKGamepad(gamepad1))
+
+        val gamepadMap = mapOf(
+            Layers.INTAKING to intakingGamepad,
+            Layers.DEPOSITING to depositingGamepad,
+            Layers.DEFAULT to defaultGamepad
+        )
+
+        val enumLayeringSystem = MapLayeringSystem(Layers.DEFAULT, gamepadMap)
+        val layeredGamepad = LayeredGamepad(enumLayeringSystem)
+
+        defaultGamepad.leftStickButton.or(depositingGamepad.leftStickButton)
             .onTrue (Lambda("intaking layer transition")
                 .setInit{ enumLayeringSystem.layer = Layers.INTAKING}
             )
-            .onFalse (defaultLayerTransition)
-        layeredGamepad.rightStickButton
+        defaultGamepad.rightStickButton.or(intakingGamepad.rightStickButton)
             .onTrue (Lambda("depositing layer transition")
                 .setInit{enumLayeringSystem.layer = Layers.DEPOSITING})
-            .onFalse (defaultLayerTransition)
-
+        boundGamepad1.leftStickButton.or(
+            boundGamepad1.rightStickButton
+        ).onFalse(
+            Lambda("return to default layer")
+                .setInit{enumLayeringSystem.layer = Layers.DEFAULT}
+        )
 
         intakingGamepad.leftTrigger.conditionalBindState()
             .greaterThan(0.1).bind()
@@ -62,7 +65,7 @@ class BasicOPMode : OpMode() {
             .onTrue(ArmSubsystem.backFloor)
         intakingGamepad.rightBumper
             .onTrue(ArmSubsystem.backWall)
-        
+
         depositingGamepad.leftTrigger.conditionalBindState()
             .greaterThan(0.1).bind()
             .onTrue(ArmSubsystem.maxBack)
@@ -84,7 +87,7 @@ class BasicOPMode : OpMode() {
         defaultGamepad.rightBumper
             .onTrue(ArmSubsystem.openClaw)
         defaultGamepad.leftBumper
-            .onTrue(ArmSubsystem.openClaw)
+            .onTrue(ArmSubsystem.closeClaw)
     }
 
     override fun loop() {
@@ -96,10 +99,10 @@ class BasicOPMode : OpMode() {
         )
         if(gamepad1.start || gamepad1.options) ArmSubsystem.resetLocation()
 
-        var dashboard = FtcDashboard.getInstance();
-        var dashboardTelemetry = dashboard.getTelemetry();
+        var dashboard = FtcDashboard.getInstance()
+        var dashboardTelemetry = dashboard.getTelemetry()
 
-        dashboardTelemetry.update();
+        dashboardTelemetry.update()
 
     }
 }

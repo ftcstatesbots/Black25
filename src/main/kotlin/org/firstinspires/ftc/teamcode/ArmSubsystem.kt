@@ -45,7 +45,7 @@ object ArmSubsystem : Subsystem {
     var clawScale: Double = .3
     var wristScale: Double = .48
     var wristOffset: Double = .41
-    @JvmField var maxArmAngle: Double = 220.0
+    @JvmField var maxArmAngle: Double = 200.0
 
     //PIDF Coefficients
     @JvmField var p = 0.005
@@ -53,7 +53,7 @@ object ArmSubsystem : Subsystem {
     @JvmField var d = 0.0003
     @JvmField var f = 0.1
     var ticksPerDegree = 500.0/135.0
-    @JvmField var targetArmAngle = 45.0
+    @JvmField var targetArmAngle = -40.0
     var angleOffset = -45.0
 
     var pidController: PIDController = PIDController(p,i,d)
@@ -78,7 +78,7 @@ object ArmSubsystem : Subsystem {
         var dashboard = FtcDashboard.getInstance();
         var dashboardTelemetry = dashboard.getTelemetry();
 
-        dashboardTelemetry.addData("real", armTicks)
+        dashboardTelemetry.addData("real", armAngle)
         dashboardTelemetry.addData("target", targetArmAngle)
         dashboardTelemetry.addData("ff", ff);
         dashboardTelemetry.addData("result", result);
@@ -132,7 +132,7 @@ object ArmSubsystem : Subsystem {
             setArmVals(backWallVals)
         }
 
-    @JvmField var backFloorVals = Vals(220.0, 0.2)
+    @JvmField var backFloorVals = Vals(200.0, 0.0)
     val backFloor = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
@@ -153,21 +153,21 @@ object ArmSubsystem : Subsystem {
             setArmVals(maxBackVals)
         }
     
-    @JvmField var highBarVals = Vals(180.0, 0.2)
+    @JvmField var highBarVals = Vals(140.0, 0.0)
     val highBar = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
             setArmVals(highBarVals)
         }
 
-    @JvmField var lowBarVals = Vals(180.0, 0.2)
+    @JvmField var lowBarVals = Vals(190.0, 0.2)
     val lowBar = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
             setArmVals(lowBarVals)
         }
 
-    @JvmField var basketVals = Vals(180.0, 0.2)
+    @JvmField var basketVals = Vals(90.0, 0.2)
     val basket = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
@@ -186,6 +186,6 @@ object ArmSubsystem : Subsystem {
         .setInit{
             clawPos = 0.0
         }
-
-    data class Vals(val arm: Double, val wrist: Double)
+@Config
+    data class Vals(@JvmField var arm: Double, @JvmField var wrist: Double)
 }

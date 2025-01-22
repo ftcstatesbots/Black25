@@ -44,7 +44,7 @@ object ArmSubsystem : Subsystem {
     var armAngle: Double = -45.0
     var clawScale: Double = .3
     var wristScale: Double = .48
-    var wristOffset: Double = .41
+    var wristOffset: Double = 0.1
     @JvmField var maxArmAngle: Double = 200.0
 
     //PIDF Coefficients
@@ -54,7 +54,9 @@ object ArmSubsystem : Subsystem {
     @JvmField var f = 0.1
     var ticksPerDegree = 500.0/135.0
     @JvmField var targetArmAngle = -40.0
+    @JvmField var scale = .3
     var angleOffset = -45.0
+    var liveOffset = 0.0
 
     var pidController: PIDController = PIDController(p,i,d)
 
@@ -65,8 +67,7 @@ object ArmSubsystem : Subsystem {
         var armTicks = motor.currentPosition //could probably be cached or something
         armAngle =(armTicks/ticksPerDegree) + angleOffset
         var result = pidController.calculate(armAngle, targetArmAngle)
-        var ff= cos(Math.toRadians(targetArmAngle))*f
-        var reactiveFeedforward = cos(Math.toRadians(armAngle)) * f
+        var ff= cos(Math.toRadians(armAngle))*f
         opMode.opMode.telemetry
             .addData("pos", armTicks)
             .addData("angle", armAngle)
@@ -75,22 +76,22 @@ object ArmSubsystem : Subsystem {
             .addData("wrist pos", wristPos)
             .addData("claw pos", clawPos)
 
-        var dashboard = FtcDashboard.getInstance();
-        var dashboardTelemetry = dashboard.getTelemetry();
+        var dashboard = FtcDashboard.getInstance()
+        var dashboardTelemetry = dashboard.getTelemetry()
 
         dashboardTelemetry.addData("real", armAngle)
         dashboardTelemetry.addData("target", targetArmAngle)
-        dashboardTelemetry.addData("ff", ff);
-        dashboardTelemetry.addData("result", result);
+        dashboardTelemetry.addData("ff", ff)
+        dashboardTelemetry.addData("result", result)
 
-        motor.power=-(result+ff)
+        motor.power=-((result)/scale+ff)
         wrist.position=(wristPos*wristScale)+wristOffset
         claw.position=clawPos*clawScale
     }
 
     //BASIC METHODS
     fun setArmVals(a: Double, w: Double, c: Double){
-        targetArmAngle=a
+        targetArmAngle=a+liveOffset
         wristPos=w
         clawPos=c
     }
@@ -111,67 +112,81 @@ object ArmSubsystem : Subsystem {
 
 
     //COMMANDS
-    @JvmField var frontFloorVals = Vals(-30.0, 1.0)
+    @JvmField var frontFloorVals = Vals(-25.0, 1.0)
     val frontFloor = Lambda("front floor ")
         .setInterruptible(true)
         .setInit{
             setArmVals(frontFloorVals)
         }
 
-    @JvmField var frontWallVals = Vals(10.0, 0.2)
+    @JvmField var frontWallVals = Vals(10.0, 0.3)
     val frontWall = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
             setArmVals(frontWallVals)
         }
 
-    @JvmField var backWallVals = Vals(170.0, 0.2)
+    @JvmField var backWallVals = Vals(170.0, 0.5)
     val backWall = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
             setArmVals(backWallVals)
         }
 
-    @JvmField var backFloorVals = Vals(200.0, 0.0)
-    val backFloor = Lambda("wall ")
+    @JvmField var backFloorVals = Vals(190.0, 0.0)
+    val backFloor = Lambda("backFloor")
         .setInterruptible(true)
         .setInit{
             setArmVals(backFloorVals)
         }
 
-    @JvmField var maxFrontVals = Vals(0.0, 0.2)
-    val maxFront = Lambda("wall ")
+    @JvmField var maxFrontVals = Vals(0.0, 0.3)
+    val maxFront = Lambda("maxFront")
         .setInterruptible(true)
         .setInit{
             setArmVals(maxFrontVals)
         }
 
-    @JvmField var maxBackVals = Vals(180.0, 0.2)
-    val maxBack = Lambda("wall ")
+    @JvmField var maxBackVals = Vals(180.0, 0.5)
+    val maxBack = Lambda("maxBack")
         .setInterruptible(true)
         .setInit{
             setArmVals(maxBackVals)
         }
     
-    @JvmField var highBarVals = Vals(140.0, 0.0)
-    val highBar = Lambda("wall ")
+    @JvmField var highBarVals = Vals(100.0, 0.5)
+    val highBar = Lambda("highBar")
         .setInterruptible(true)
         .setInit{
             setArmVals(highBarVals)
         }
 
-    @JvmField var lowBarVals = Vals(190.0, 0.2)
-    val lowBar = Lambda("wall ")
+    @JvmField var highBarApproachingVals = Vals(90.0,0.5)
+    val approachHighBar = Lambda("Approach high bar")
+        .setInterruptible(true)
+        .setInit{
+            setArmVals(highBarApproachingVals)
+        }
+
+    @JvmField var lowBarVals = Vals(190.0, 0.5)
+    val lowBar = Lambda("lowBar")
         .setInterruptible(true)
         .setInit{
             setArmVals(lowBarVals)
         }
 
-    @JvmField var basketVals = Vals(90.0, 0.2)
-    val basket = Lambda("wall ")
+    @JvmField var basketVals = Vals(80.0, 0.5)
+    val basket = Lambda("basket ")
         .setInterruptible(true)
         .setInit{
-            setArmVals(lowBarVals)
+            setArmVals(basketVals)
+        }
+
+    @JvmField var verticalVals = Vals(90.0,0.5)
+    val vertical = Lambda("vertical")
+        .setInterruptible(true)
+        .setInit{
+            setArmVals(verticalVals)
         }
 
     //claw commands
@@ -185,6 +200,20 @@ object ArmSubsystem : Subsystem {
         .setInterruptible(true)
         .setInit{
             clawPos = 0.0
+        }
+
+    val nudgeOffsetUp = Lambda("nudge offset up")
+        .setInterruptible(true)
+        .setInit{
+            liveOffset+=0.1
+            targetArmAngle += liveOffset
+        }
+
+    val nudgeOffsetDown = Lambda("nudge offset down")
+        .setInterruptible(true)
+        .setInit{
+            liveOffset+=0.1
+            targetArmAngle += liveOffset
         }
 @Config
     data class Vals(@JvmField var arm: Double, @JvmField var wrist: Double)

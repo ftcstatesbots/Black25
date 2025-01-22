@@ -66,28 +66,27 @@ class BasicOPMode : OpMode() {
         intakingGamepad.rightBumper
             .onTrue(ArmSubsystem.backWall)
 
-        depositingGamepad.leftTrigger.conditionalBindState()
-            .greaterThan(0.1).bind()
-            .onTrue(ArmSubsystem.maxBack)
-        depositingGamepad.leftBumper
-            .onTrue(ArmSubsystem.highBar)
         depositingGamepad.rightTrigger.conditionalBindState()
             .greaterThan(0.1).bind()
-            .onTrue(ArmSubsystem.maxFront)
+            .onTrue(ArmSubsystem.highBar)
         depositingGamepad.rightBumper
-            .onTrue(ArmSubsystem.lowBar)
+            .onTrue(ArmSubsystem.approachHighBar)
         depositingGamepad.leftTrigger.conditionalBindState()
-            .greaterThan(.1).bind()
-            .and(
-                depositingGamepad.rightTrigger.conditionalBindState()
-                    .greaterThan(0.1).bind()
-            )
+            .greaterThan(0.1).bind()
+            .onTrue(ArmSubsystem.vertical)
+        depositingGamepad.leftBumper
             .onTrue(ArmSubsystem.basket)
 
         defaultGamepad.rightBumper
             .onTrue(ArmSubsystem.openClaw)
         defaultGamepad.leftBumper
             .onTrue(ArmSubsystem.closeClaw)
+        defaultGamepad.leftTrigger.conditionalBindState()
+            .greaterThan(.1).bind()
+            .onTrue(ArmSubsystem.nudgeOffsetUp)
+        defaultGamepad.rightTrigger.conditionalBindState()
+            .greaterThan(.1).bind()
+            .onTrue(ArmSubsystem.nudgeOffsetDown)
     }
 
     override fun loop() {

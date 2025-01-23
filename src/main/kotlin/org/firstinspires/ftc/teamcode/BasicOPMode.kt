@@ -77,16 +77,19 @@ class BasicOPMode : OpMode() {
         depositingGamepad.leftBumper
             .onTrue(ArmSubsystem.basket)
 
-        defaultGamepad.rightBumper
+        defaultGamepad.rightBumper.debounce(0.1)
             .onTrue(ArmSubsystem.openClaw)
         defaultGamepad.leftBumper
             .onTrue(ArmSubsystem.closeClaw)
+
         defaultGamepad.leftTrigger.conditionalBindState()
-            .greaterThan(.1).bind()
-            .onTrue(ArmSubsystem.nudgeOffsetUp)
-        defaultGamepad.rightTrigger.conditionalBindState()
-            .greaterThan(.1).bind()
-            .onTrue(ArmSubsystem.nudgeOffsetDown)
+            .greaterThan(0.1).bind()
+            .or(defaultGamepad.rightTrigger.conditionalBindState()
+                .greaterThan(0.1).bind())
+            .whileTrue(
+                Lambda("change offset")
+                    .setInit{ArmSubsystem.changeOffset(defaultGamepad.leftTrigger.state-defaultGamepad.rightTrigger.state)})
+
     }
 
     override fun loop() {

@@ -45,7 +45,7 @@ object ArmSubsystem : Subsystem {
     var clawScale: Double = .3
     var wristScale: Double = .48
     var wristOffset: Double = 0.1
-    @JvmField var maxArmAngle: Double = 200.0
+    @JvmField var maxArmAngle: Double = 205.0
 
     //PIDF Coefficients
     @JvmField var p = 0.005
@@ -97,7 +97,7 @@ object ArmSubsystem : Subsystem {
     }
 
     fun setArmVals(a: Double, w: Double){
-        targetArmAngle=a
+        targetArmAngle=a+liveOffset
         wristPos=w
     }
 
@@ -108,11 +108,17 @@ object ArmSubsystem : Subsystem {
     fun resetLocation(){
         motor.mode= DcMotor.RunMode.STOP_AND_RESET_ENCODER
         motor.mode= DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+        liveOffset = 0.0
+    }
+
+    fun changeOffset(d: Double){
+        liveOffset+=d
     }
 
 
     //COMMANDS
-    @JvmField var frontFloorVals = Vals(-25.0, 1.0)
+    @JvmField var frontFloorVals = Vals(-19.0, 1.0)
     val frontFloor = Lambda("front floor ")
         .setInterruptible(true)
         .setInit{
@@ -126,14 +132,14 @@ object ArmSubsystem : Subsystem {
             setArmVals(frontWallVals)
         }
 
-    @JvmField var backWallVals = Vals(170.0, 0.5)
+    @JvmField var backWallVals = Vals(170.0, 0.3)
     val backWall = Lambda("wall ")
         .setInterruptible(true)
         .setInit{
             setArmVals(backWallVals)
         }
 
-    @JvmField var backFloorVals = Vals(190.0, 0.0)
+    @JvmField var backFloorVals = Vals(204.0, 0.0)
     val backFloor = Lambda("backFloor")
         .setInterruptible(true)
         .setInit{
@@ -147,42 +153,42 @@ object ArmSubsystem : Subsystem {
             setArmVals(maxFrontVals)
         }
 
-    @JvmField var maxBackVals = Vals(180.0, 0.5)
+    @JvmField var maxBackVals = Vals(180.0, 0.3)
     val maxBack = Lambda("maxBack")
         .setInterruptible(true)
         .setInit{
             setArmVals(maxBackVals)
         }
     
-    @JvmField var highBarVals = Vals(100.0, 0.5)
+    @JvmField var highBarVals = Vals(100.0, 0.3)
     val highBar = Lambda("highBar")
         .setInterruptible(true)
         .setInit{
             setArmVals(highBarVals)
         }
 
-    @JvmField var highBarApproachingVals = Vals(90.0,0.5)
+    @JvmField var highBarApproachingVals = Vals(90.0,0.3)
     val approachHighBar = Lambda("Approach high bar")
         .setInterruptible(true)
         .setInit{
             setArmVals(highBarApproachingVals)
         }
 
-    @JvmField var lowBarVals = Vals(190.0, 0.5)
+    @JvmField var lowBarVals = Vals(190.0, 0.3)
     val lowBar = Lambda("lowBar")
         .setInterruptible(true)
         .setInit{
             setArmVals(lowBarVals)
         }
 
-    @JvmField var basketVals = Vals(80.0, 0.5)
+    @JvmField var basketVals = Vals(80.0, 0.3)
     val basket = Lambda("basket ")
         .setInterruptible(true)
         .setInit{
             setArmVals(basketVals)
         }
 
-    @JvmField var verticalVals = Vals(90.0,0.5)
+    @JvmField var verticalVals = Vals(90.0,0.3)
     val vertical = Lambda("vertical")
         .setInterruptible(true)
         .setInit{
@@ -202,19 +208,7 @@ object ArmSubsystem : Subsystem {
             clawPos = 0.0
         }
 
-    val nudgeOffsetUp = Lambda("nudge offset up")
-        .setInterruptible(true)
-        .setInit{
-            liveOffset+=0.1
-            targetArmAngle += liveOffset
-        }
 
-    val nudgeOffsetDown = Lambda("nudge offset down")
-        .setInterruptible(true)
-        .setInit{
-            liveOffset+=0.1
-            targetArmAngle += liveOffset
-        }
 @Config
     data class Vals(@JvmField var arm: Double, @JvmField var wrist: Double)
 }
